@@ -14,7 +14,7 @@ import Tile from "./Tile";
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 3;
 const DRAG_THRESHOLD_RATIO = 0.3;
-const MONO_FONT = "ui-monospace, SFMono-Regular, Menlo, Monaco, monospace";
+const MONO_FONT = "Inter, ui-monospace, SFMono-Regular, Menlo, Monaco, monospace";
 
 // Heavy-feel physics: all interactions feed into targets, a single chase loop interpolates
 const CHASE_LERP = 0.09;
@@ -58,11 +58,21 @@ function clampOffset(
   return { x, y };
 }
 
+const PAN_ESCAPE_PX = 18;
+
 interface DragInfo {
   tileRow: number;
   tileCol: number;
   startX: number;
   startY: number;
+}
+
+interface UndecidedTouch {
+  tileRow: number;
+  tileCol: number;
+  startX: number;
+  startY: number;
+  pointerId: number;
 }
 
 export default function GameBoard({
@@ -85,6 +95,7 @@ export default function GameBoard({
   offsetRef.current = offset;
 
   const dragRef = useRef<DragInfo | null>(null);
+  const undecidedRef = useRef<UndecidedTouch | null>(null);
   const [dragVisual, setDragVisual] = useState<{
     row: number;
     col: number;
@@ -439,46 +450,128 @@ export default function GameBoard({
     [grid]
   );
 
+  // ---- Shared helpers for starting pan / tile-drag ----
+
+  const startPan = useCallback(
+    (clientX: number, clientY: number) => {
+      isPanning.current = true;
+      chaseVelRef.current = { x: 0, y: 0 };
+      panStart.current = {
+        x: clientX,
+        y: clientY,
+        ox: offsetRef.current.x,
+        oy: offsetRef.current.y,
+      };
+      ensureChaseLoop();
+    },
+    [ensureChaseLoop]
+  );
+
+  const startTileDrag = useCallback(
+    (row: number, col: number, clientX: number, clientY: number) => {
+      dragRef.current = {
+        tileRow: row,
+        tileCol: col,
+        startX: clientX,
+        startY: clientY,
+      };
+      swappedDuringDrag.current = false;
+      setDragVisual({ row, col, dx: 0, dy: 0 });
+    },
+    []
+  );
+
   // ---- Pointer handlers ----
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      // Stop any ongoing coast / loop momentum
       cancelChaseLoop();
       targetOffsetRef.current = { ...offsetRef.current };
       targetScaleRef.current = scaleRef.current;
 
       const hit = hitTestTile(e.clientX, e.clientY);
+      const isTouch = e.pointerType === "touch";
 
       if (hit && !isProcessing) {
-        dragRef.current = {
-          tileRow: hit.row,
-          tileCol: hit.col,
-          startX: e.clientX,
-          startY: e.clientY,
-        };
-        swappedDuringDrag.current = false;
-        setDragVisual({ row: hit.row, col: hit.col, dx: 0, dy: 0 });
+        if (isTouch) {
+          undecidedRef.current = {
+            tileRow: hit.row,
+            tileCol: hit.col,
+            startX: e.clientX,
+            startY: e.clientY,
+            pointerId: e.pointerId,
+          };
+        } else {
+          startTileDrag(hit.row, hit.col, e.clientX, e.clientY);
+        }
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
 
-      isPanning.current = true;
-      chaseVelRef.current = { x: 0, y: 0 };
-      panStart.current = {
-        x: e.clientX,
-        y: e.clientY,
-        ox: offsetRef.current.x,
-        oy: offsetRef.current.y,
-      };
-      ensureChaseLoop();
+      startPan(e.clientX, e.clientY);
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     },
-    [hitTestTile, isProcessing, cancelChaseLoop, ensureChaseLoop]
+    [hitTestTile, isProcessing, cancelChaseLoop, startPan, startTileDrag]
   );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
+      // Touch undecided state: decide between tile swap and pan
+      if (undecidedRef.current) {
+        const u = undecidedRef.current;
+        const screenDx = e.clientX - u.startX;
+        const screenDy = e.clientY - u.startY;
+        const dist = Math.hypot(screenDx, screenDy);
+
+        if (dist < PAN_ESCAPE_PX) return;
+
+        const s = scaleRef.current;
+        const dx = screenDx / s;
+        const dy = screenDy / s;
+        const thresholdX = CELL_W * DRAG_THRESHOLD_RATIO;
+        const thresholdY = CELL_H * DRAG_THRESHOLD_RATIO;
+        const axisRatio = Math.abs(dx) / (Math.abs(dy) + 0.001);
+        const isDirectional = axisRatio > 2.0 || axisRatio < 0.5;
+
+        if (isDirectional) {
+          let targetRow = u.tileRow;
+          let targetCol = u.tileCol;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            if (dx > thresholdX) targetCol++;
+            else if (dx < -thresholdX) targetCol--;
+          } else {
+            if (dy > thresholdY) targetRow++;
+            else if (dy < -thresholdY) targetRow--;
+          }
+
+          const swapped =
+            targetRow !== u.tileRow || targetCol !== u.tileCol;
+          if (
+            swapped &&
+            targetRow >= 0 &&
+            targetRow < GRID_ROWS &&
+            targetCol >= 0 &&
+            targetCol < GRID_COLS
+          ) {
+            undecidedRef.current = null;
+            onSwap(
+              { row: u.tileRow, col: u.tileCol },
+              { row: targetRow, col: targetCol }
+            );
+            return;
+          }
+        }
+
+        undecidedRef.current = null;
+        startPan(u.startX, u.startY);
+        const { w, h } = getViewport();
+        const rawX = panStart.current.ox + screenDx;
+        const rawY = panStart.current.oy + screenDy;
+        targetOffsetRef.current = clampOffset(rawX, rawY, scaleRef.current, w, h);
+        return;
+      }
+
+      // Mouse tile drag
       if (dragRef.current && !swappedDuringDrag.current) {
         const s = scaleRef.current;
         const screenDx = e.clientX - dragRef.current.startX;
@@ -527,7 +620,6 @@ export default function GameBoard({
         return;
       }
 
-      // Pointer pan: only update the target — chase loop drives actual offset
       if (isPanning.current) {
         const { w, h } = getViewport();
         const rawX = panStart.current.ox + (e.clientX - panStart.current.x);
@@ -541,10 +633,15 @@ export default function GameBoard({
         );
       }
     },
-    [getViewport, onSwap]
+    [getViewport, onSwap, startPan]
   );
 
   const handlePointerUp = useCallback(() => {
+    if (undecidedRef.current) {
+      undecidedRef.current = null;
+      return;
+    }
+
     if (dragRef.current) {
       if (
         !swappedDuringDrag.current &&
@@ -566,12 +663,10 @@ export default function GameBoard({
     if (isPanning.current) {
       isPanning.current = false;
 
-      // Project the target ahead for momentum coast
       const vel = chaseVelRef.current;
       if (Math.abs(vel.x) > 0.3 || Math.abs(vel.y) > 0.3) {
         const { w, h } = getViewport();
         const to = targetOffsetRef.current;
-        // Remaining chase gap acts as additional impulse
         const remain = {
           x: to.x - offsetRef.current.x,
           y: to.y - offsetRef.current.y,
@@ -584,7 +679,6 @@ export default function GameBoard({
           h
         );
       }
-      // Chase loop is already running; it will coast and then settle
     }
   }, [dragVisual, getViewport]);
 

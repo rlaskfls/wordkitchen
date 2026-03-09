@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --font-geist-sans: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-geist-mono: "Geist Mono", ui-monospace, monospace;
+  --font-geist-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-geist-mono: "Inter", ui-monospace, monospace;
 
   --bg-primary: #ffffff;
   --bg-secondary: #f7f7f5;
@@ -47,4 +47,8 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+.font-mono {
+  font-feature-settings: "cv01" 1, "cv02" 1, "cv03" 1, "cv04" 1, "ss01" 1;
 }
