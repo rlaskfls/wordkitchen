@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  --font-geist-sans: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-geist-mono: "Geist Mono", ui-monospace, monospace;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f7f5;
+  --bg-tile: #ffffff;
+  --border-color: #e3e3e0;
+  --border-strong: #37352f;
+  --text-primary: #37352f;
+  --text-secondary: #787774;
+  --text-tertiary: #b4b4b0;
+  --accent: #37352f;
+  --accent-light: #f1f1ef;
+  --danger: #eb5757;
+  --success: #27ae60;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --tile-size: 34px;
+  --tile-gap: 2px;
+
+  --canvas-bg: #f7f7f5;
+  --canvas-text: #37352f;
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --header-border: rgba(0, 0, 0, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
