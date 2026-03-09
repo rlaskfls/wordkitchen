@@ -10,7 +10,7 @@ export default function SubmittedWords({ words }: SubmittedWordsProps) {
 
   return (
     <div className="w-full max-w-md">
-      <span className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+      <span className="text-xs h-fit uppercase tracking-wider text-[var(--text-secondary)]">
         Words Found ({words.length})
       </span>
       <div className="flex flex-wrap gap-1.5 mt-2">

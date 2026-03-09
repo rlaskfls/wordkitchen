@@ -111,7 +111,7 @@ export default function WordBuilder({
       <div className="flex items-center justify-between w-full">
         <ScoreDisplay score={score} />
         <div className="flex flex-col items-center">
-          <span className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+          <span className="text-[10px] leading-[15px] uppercase tracking-wider text-[var(--text-secondary)]">
             Letters Left
           </span>
           <span className="font-mono text-xl font-bold tabular-nums">
@@ -121,8 +121,8 @@ export default function WordBuilder({
       </div>
 
       <div className="text-center">
-        <h2 className="text-lg font-semibold">Spell Food Words</h2>
-        <p className="text-xs text-[var(--text-secondary)]">
+        <h2 className="text-lg font-semibold">Spell to Cook</h2>
+        <p className="text-xs h-fit text-[var(--text-secondary)]">
           Use your collected letters to form food-related words
         </p>
       </div>

@@ -25,7 +25,7 @@ export default function WordInput({
         transition={{ duration: 0.4 }}
       >
         {letters.length === 0 ? (
-          <span className="text-sm text-[var(--text-tertiary)]">
+          <span className="text-xs h-fit text-[var(--text-tertiary)]">
             Click letters to build a word...
           </span>
         ) : (
