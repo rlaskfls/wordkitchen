@@ -155,9 +155,10 @@ export default function Game() {
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-[var(--text-secondary)] max-w-xs">
-                Match 3 or more identical letters to collect them. Use your
-                collected letters to spell food words.
+              <p className="text-sm text-[var(--text-secondary)] max-w-md">
+                Match 3 or more identical letters to collect them.
+                <br />
+                Use your collected letters to spell food words.
               </p>
             </div>
             <button
