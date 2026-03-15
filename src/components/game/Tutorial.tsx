@@ -302,7 +302,7 @@ export default function Tutorial({ onComplete }: TutorialProps) {
               exit="leave"
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className="flex flex-col items-center text-center gap-3"
-              style={{ minHeight: CONTENT_H, paddingTop: 20 }}
+              style={{ height: CONTENT_H, paddingTop: 20, overflow: "hidden" }}
             >
               <div
                 className="flex items-center justify-center"
@@ -315,7 +315,7 @@ export default function Tutorial({ onComplete }: TutorialProps) {
               </h3>
               <p
                 className="text-[13px] leading-relaxed text-[var(--text-secondary)]"
-                style={{ minHeight: 60, whiteSpace: "pre-line" }}
+                style={{ whiteSpace: "pre-line" }}
               >
                 {current.body}
               </p>
