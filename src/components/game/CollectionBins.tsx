@@ -55,7 +55,7 @@ export default function CollectionBins({
         />
         {/* Knob */}
         <path
-          d="M112 13 Q112 2 130 2 Q148 2 148 13"
+          d="M112 10 Q112 -1 130 -1 Q148 -1 148 10"
           fill="none"
           stroke={POT_STROKE}
           strokeWidth={SW}
@@ -77,7 +77,7 @@ export default function CollectionBins({
         {/* Left handle */}
         <svg
           className="absolute pointer-events-none"
-          style={{ left: -17, top: "10%", width: 18, height: "45%" }}
+          style={{ left: -18, top: "10%", width: 18, height: "45%" }}
           viewBox="0 0 18 40"
           fill="none"
           overflow="visible"
@@ -94,7 +94,7 @@ export default function CollectionBins({
         {/* Right handle */}
         <svg
           className="absolute pointer-events-none"
-          style={{ right: -17, top: "10%", width: 18, height: "45%" }}
+          style={{ right: -18, top: "10%", width: 18, height: "45%" }}
           viewBox="0 0 18 40"
           fill="none"
           overflow="visible"

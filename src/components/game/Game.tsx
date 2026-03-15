@@ -13,12 +13,14 @@ import CollectionBins from "./CollectionBins";
 import Timer from "./Timer";
 import ScoreDisplay from "./ScoreDisplay";
 import WordBuilder from "../wordbuilder/WordBuilder";
+import Tutorial from "./Tutorial";
 
 export default function Game() {
   const { state, dispatch } = useGameState();
   const [matchedPositions, setMatchedPositions] = useState<Set<string>>(new Set());
   const [fallingTiles, setFallingTiles] = useState<Map<string, { dist: number; delay: number }>>(new Map());
   const [binPositions, setBinPositions] = useState<Record<string, DOMRect>>({});
+  const [showTutorial, setShowTutorial] = useState(false);
   const comboRef = useRef(1);
   const processingRef = useRef(false);
 
@@ -32,7 +34,7 @@ export default function Game() {
 
   useTimer(
     state.timeRemaining,
-    state.phase === "matching",
+    state.phase === "matching" && !showTutorial,
     handleTick,
     handleTimeEnd
   );
@@ -162,7 +164,10 @@ export default function Game() {
               </p>
             </div>
             <button
-              onClick={() => dispatch({ type: "START_GAME" })}
+              onClick={() => {
+                dispatch({ type: "START_GAME" });
+                setShowTutorial(true);
+              }}
               className="px-8 py-3 bg-[var(--accent)] text-white rounded-[336px] font-medium text-sm hover:opacity-90 transition-opacity"
             >
               Start Cooking
@@ -227,6 +232,13 @@ export default function Game() {
                 isCollecting={matchedPositions.size > 0}
               />
             </div>
+
+            {/* Tutorial overlay — pauses timer until dismissed */}
+            <AnimatePresence>
+              {showTutorial && (
+                <Tutorial onComplete={() => setShowTutorial(false)} />
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 
