@@ -219,22 +219,13 @@ export default function Game() {
               </div>
             </div>
 
-            {/* Floating bottom bins */}
+            {/* Floating bottom bins - cooking pot */}
             <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
-              <div
-                className="px-4 py-2 rounded-2xl border shadow-sm"
-                style={{
-                  background: "var(--header-bg)",
-                  borderColor: "var(--header-border)",
-                  backdropFilter: "blur(20px)",
-                  WebkitBackdropFilter: "blur(20px)",
-                }}
-              >
-                <CollectionBins
-                  collected={state.collectedLetters}
-                  onMeasureBin={handleBinMeasure}
-                />
-              </div>
+              <CollectionBins
+                collected={state.collectedLetters}
+                onMeasureBin={handleBinMeasure}
+                isCollecting={matchedPositions.size > 0}
+              />
             </div>
           </motion.div>
         )}

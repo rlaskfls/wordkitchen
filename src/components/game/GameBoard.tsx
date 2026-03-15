@@ -483,31 +483,39 @@ export default function GameBoard({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
+      const isTouch = e.pointerType === "touch";
+
+      // During two-finger pinch/pan, ignore pointer events (touch handler owns the gesture)
+      if (isTouch && pinchRef.current) return;
+
       cancelChaseLoop();
       targetOffsetRef.current = { ...offsetRef.current };
       targetScaleRef.current = scaleRef.current;
 
       const hit = hitTestTile(e.clientX, e.clientY);
-      const isTouch = e.pointerType === "touch";
 
-      // Tile hit: always treat as tile drag (never pan), even during match animation
-      if (hit) {
+      // Tile hit: treat as tile drag (never pan)
+      if (hit && !isProcessing) {
         startTileDrag(hit.row, hit.col, e.clientX, e.clientY);
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
 
-      // Single-finger touch: no panning (reserved for tile interactions)
+      // Single-finger touch on empty space: no panning (reserved for tile interactions only)
       if (isTouch) return;
 
+      // Mouse on empty space: pan
       startPan(e.clientX, e.clientY);
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     },
-    [hitTestTile, cancelChaseLoop, startPan, startTileDrag]
+    [hitTestTile, isProcessing, cancelChaseLoop, startPan, startTileDrag]
   );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
+      // During two-finger pinch/pan, touch handler owns the gesture
+      if (e.pointerType === "touch" && pinchRef.current) return;
+
       // Tile drag (mouse and touch)
       if (dragRef.current && !swappedDuringDrag.current) {
         const s = scaleRef.current;
