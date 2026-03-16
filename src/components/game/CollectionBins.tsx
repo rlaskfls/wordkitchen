@@ -59,7 +59,7 @@ function SinglePot({
   showPlaceholder,
   lidDir,
   flexHeight = false,
-  placeholderMarginTop = -3,
+  placeholderMarginTop = 7,
 }: SinglePotProps) {
   const activeBins = letters.filter((l) => (collected[l] || 0) > 0);
 
@@ -213,7 +213,7 @@ export default function CollectionBins({
           showPlaceholder={true}
           lidDir="center"
           flexHeight
-          placeholderMarginTop={-13}
+          placeholderMarginTop={17}
         />
       </div>
     );
@@ -234,6 +234,7 @@ export default function CollectionBins({
             isCollecting={isCollecting}
             showPlaceholder={range.showPlaceholder}
             lidDir={range.lidDir}
+            {...(i === 1 && { placeholderMarginTop: 0 })}
           />
         );
       })}
