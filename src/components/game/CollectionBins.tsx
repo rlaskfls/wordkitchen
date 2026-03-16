@@ -6,25 +6,58 @@ interface CollectionBinsProps {
   collected: LetterCollection;
   dark?: boolean;
   onMeasureBin?: (letter: string, rect: DOMRect) => void;
-  isCollecting?: boolean;
+  matchedLetters?: Set<string>;
 }
-
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 const SW = 4;
 const POT_STROKE = "#37352f";
 
-export default function CollectionBins({
+type LidDirection = "left" | "center" | "right";
+
+const POT_RANGES: { letters: string[]; showPlaceholder: boolean; lidDir: LidDirection }[] = [
+  { letters: "ABCDEFGHI".split(""), showPlaceholder: false, lidDir: "left" },
+  { letters: "JKLMNOPQR".split(""), showPlaceholder: true, lidDir: "center" },
+  { letters: "STUVWXYZ".split(""), showPlaceholder: false, lidDir: "right" },
+];
+
+interface SinglePotProps {
+  letters: string[];
+  collected: LetterCollection;
+  dark: boolean;
+  onMeasureBin?: (letter: string, rect: DOMRect) => void;
+  isCollecting: boolean;
+  showPlaceholder: boolean;
+  lidDir: LidDirection;
+}
+
+function SinglePot({
+  letters,
   collected,
-  dark = false,
+  dark,
   onMeasureBin,
-  isCollecting = false,
-}: CollectionBinsProps) {
-  const activeBins = ALPHABET.filter((l) => (collected[l] || 0) > 0);
+  isCollecting,
+  showPlaceholder,
+  lidDir,
+}: SinglePotProps) {
+  const activeBins = letters.filter((l) => (collected[l] || 0) > 0);
+
+  const lidOrigin =
+    lidDir === "right"
+      ? "94% 92%"
+      : lidDir === "center"
+      ? "50% 92%"
+      : "6% 92%";
+
+  const lidAnimate =
+    lidDir === "center"
+      ? { y: isCollecting ? -20 : 0, scaleX: 1 }
+      : lidDir === "right"
+      ? { rotate: isCollecting ? 16 : 0, scaleX: 1 }
+      : { rotate: isCollecting ? -16 : 0, scaleX: 1 };
 
   return (
     <div className="relative" style={{ padding: "26px 18px 0", width: "300px" }}>
-      {/* Lid — separate SVG, pivots from left bottom like the reference */}
+      {/* Lid */}
       <motion.svg
         viewBox="0 0 260 38"
         className="absolute pointer-events-none"
@@ -33,18 +66,17 @@ export default function CollectionBins({
           left: 4,
           right: 4,
           width: "calc(100% - 8px)",
-          transformOrigin: "6% 92%",
+          transformOrigin: lidOrigin,
           zIndex: 20,
           overflow: "visible",
         }}
-        animate={{ rotate: isCollecting ? -16 : 0 }}
+        animate={lidAnimate}
         transition={
           isCollecting
             ? { type: "spring", stiffness: 280, damping: 18 }
             : { type: "spring", stiffness: 90, damping: 18, mass: 1.8 }
         }
       >
-        {/* Dome */}
         <path
           d="M12 34 Q12 22 36 17 Q130 2 224 17 Q248 22 248 34 Z"
           fill="#fdfdfd"
@@ -53,7 +85,6 @@ export default function CollectionBins({
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
         />
-        {/* Knob */}
         <path
           d="M112 10 Q112 -1 130 -1 Q148 -1 148 10"
           fill="none"
@@ -66,8 +97,9 @@ export default function CollectionBins({
 
       {/* Pot body */}
       <div
-        className="relative w-full min-h-[72px]"
+        className="relative w-full"
         style={{
+          height: 80,
           background: "#fdfdfd",
           border: `${SW}px solid ${POT_STROKE}`,
           borderRadius: "0 0 22px 22px",
@@ -109,11 +141,16 @@ export default function CollectionBins({
         </svg>
 
         {/* Letter bins */}
-        <div className="relative z-10 px-4 py-3 flex items-center justify-center min-h-[56px]">
+        <div className="relative z-10 px-4 flex items-center justify-center h-full">
           {activeBins.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center text-[11px] text-[var(--text-tertiary)]" style={{ marginTop: 7 }}>
-              Match letters to collect
-            </div>
+            showPlaceholder ? (
+              <div
+                className="absolute inset-0 flex items-center justify-center text-[11px] text-[var(--text-tertiary)]"
+                style={{ marginTop: 7 }}
+              >
+                Match letters to collect
+              </div>
+            ) : null
           ) : (
             <div className="flex flex-wrap items-center justify-center gap-0.5">
               {activeBins.map((letter) => (
@@ -129,6 +166,34 @@ export default function CollectionBins({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function CollectionBins({
+  collected,
+  dark = false,
+  onMeasureBin,
+  matchedLetters = new Set(),
+}: CollectionBinsProps) {
+  return (
+    <div className="flex items-end gap-1">
+      {POT_RANGES.map((range, i) => {
+        const isCollecting = range.letters.some((l) => matchedLetters.has(l));
+
+        return (
+          <SinglePot
+            key={i}
+            letters={range.letters}
+            collected={collected}
+            dark={dark}
+            onMeasureBin={onMeasureBin}
+            isCollecting={isCollecting}
+            showPlaceholder={range.showPlaceholder}
+            lidDir={range.lidDir}
+          />
+        );
+      })}
     </div>
   );
 }

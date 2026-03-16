@@ -18,6 +18,7 @@ import Tutorial from "./Tutorial";
 export default function Game() {
   const { state, dispatch } = useGameState();
   const [matchedPositions, setMatchedPositions] = useState<Set<string>>(new Set());
+  const [matchedLetters, setMatchedLetters] = useState<Set<string>>(new Set());
   const [fallingTiles, setFallingTiles] = useState<Map<string, { dist: number; delay: number }>>(new Map());
   const [binPositions, setBinPositions] = useState<Record<string, DOMRect>>({});
   const [showTutorial, setShowTutorial] = useState(false);
@@ -73,12 +74,14 @@ export default function Game() {
       setMatchedPositions(positions);
 
       const letters = getMatchedLetters(matches);
+      setMatchedLetters(new Set(letters));
       dispatch({ type: "COLLECT_LETTERS", letters });
 
       const floatTime = HIGHLIGHT_DURATION + FLOAT_DURATION + positions.size * FLOAT_STAGGER;
       await new Promise((r) => setTimeout(r, floatTime));
 
       setMatchedPositions(new Set());
+      setMatchedLetters(new Set());
       const removed = removeMatched(currentGrid, positions);
       const { grid: gravityGrid, fallMap: gravFall } = applyGravityWithInfo(removed);
       const { grid: nextGrid, fallMap: fillFall } = fillEmptyWithInfo(gravityGrid);
@@ -229,7 +232,7 @@ export default function Game() {
               <CollectionBins
                 collected={state.collectedLetters}
                 onMeasureBin={handleBinMeasure}
-                isCollecting={matchedPositions.size > 0}
+                matchedLetters={matchedLetters}
               />
             </div>
 
@@ -299,6 +302,7 @@ export default function Game() {
             <button
               onClick={() => {
                 setMatchedPositions(new Set());
+                setMatchedLetters(new Set());
                 comboRef.current = 1;
                 processingRef.current = false;
                 dispatch({ type: "RESET_GAME" });
