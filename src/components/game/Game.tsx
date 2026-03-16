@@ -216,10 +216,10 @@ export default function Game() {
               binPositions={binPositions}
             />
 
-            {/* Floating header */}
-            <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2">
+            {/* MOBILE: nav + shuffle grouped, centered — hidden on sm+ */}
+            <div className="sm:hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-5">
               <div
-                className="flex items-center gap-2 px-3 sm:gap-5 sm:px-6 py-3 rounded-2xl border shadow-sm"
+                className="flex items-center gap-2 px-3 py-3 rounded-2xl border shadow-sm"
                 style={{
                   background: "var(--header-bg)",
                   borderColor: "var(--header-border)",
@@ -227,7 +227,70 @@ export default function Game() {
                   WebkitBackdropFilter: "blur(20px)",
                 }}
               >
-                <span className="text-[var(--text-primary)] font-semibold text-xs sm:text-sm tracking-tight whitespace-nowrap">
+                <span className="text-[var(--text-primary)] font-semibold text-xs tracking-tight whitespace-nowrap">
+                  Word Kitchen
+                </span>
+                <div className="w-px h-6 bg-[var(--border-color)]" />
+                <ScoreDisplay score={state.score} />
+                <div className="w-px h-6 bg-[var(--border-color)]" />
+                <Timer timeRemaining={state.timeRemaining} />
+                <div className="w-px h-6 bg-[var(--border-color)]" />
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
+                    Letters
+                  </span>
+                  <span className="font-mono text-lg font-bold tabular-nums text-[var(--text-primary)]">
+                    {letterCount}
+                  </span>
+                </div>
+              </div>
+              <motion.button
+                onPointerDown={(e) => { e.stopPropagation(); handleShuffle(); }}
+                onPointerUp={(e) => e.stopPropagation()}
+                onPointerMove={(e) => e.stopPropagation()}
+                disabled={shufflesLeft <= 0}
+                className="relative flex-shrink-0 w-10 h-10 rounded-full border flex items-center justify-center shadow-sm"
+                style={{
+                  pointerEvents: "auto",
+                  cursor: shufflesLeft > 0 ? "pointer" : "default",
+                  opacity: shufflesLeft > 0 ? 1 : 0.35,
+                  background: "var(--header-bg)",
+                  borderColor: "var(--header-border)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                }}
+                animate={isShuffling ? { scale: [1, 0.85, 1.1, 1], rotate: [0, 360] } : { scale: 1, rotate: 0 }}
+                transition={isShuffling ? { duration: 0.5, ease: "easeInOut" } : { duration: 0.2 }}
+                whileHover={shufflesLeft > 0 ? { scale: 1.08 } : {}}
+                whileTap={shufflesLeft > 0 ? { scale: 0.92 } : {}}
+                title={shufflesLeft > 0 ? "Shuffle board" : "No shuffles left"}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 7.5 A7 7 0 0 1 13.5 3.5" />
+                  <path d="M13.5 1 L13.5 4 L10.5 4" />
+                  <path d="M17 10.5 A7 7 0 0 1 4.5 14.5" />
+                  <path d="M4.5 17 L4.5 14 L7.5 14" />
+                </svg>
+                {shufflesLeft > 0 && (
+                  <span className="absolute flex items-center justify-center rounded-full font-bold" style={{ top: -4, right: -4, width: 16, height: 16, fontSize: 10, lineHeight: 1, color: "#fff", background: "var(--text-primary)" }}>
+                    {shufflesLeft}
+                  </span>
+                )}
+              </motion.button>
+            </div>
+
+            {/* DESKTOP: nav centered — hidden on mobile */}
+            <div className="hidden sm:flex fixed top-5 left-1/2 -translate-x-1/2 z-50 flex-col items-center gap-2">
+              <div
+                className="flex items-center gap-5 px-6 py-3 rounded-2xl border shadow-sm"
+                style={{
+                  background: "var(--header-bg)",
+                  borderColor: "var(--header-border)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                }}
+              >
+                <span className="text-[var(--text-primary)] font-semibold text-sm tracking-tight whitespace-nowrap">
                   Word Kitchen
                 </span>
                 <div className="w-px h-6 bg-[var(--border-color)]" />
@@ -246,16 +309,13 @@ export default function Game() {
               </div>
             </div>
 
-            {/* Shuffle button — aligned vertically with nav bar */}
+            {/* DESKTOP: shuffle button fixed top-right — hidden on mobile */}
             <motion.button
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                handleShuffle();
-              }}
+              onPointerDown={(e) => { e.stopPropagation(); handleShuffle(); }}
               onPointerUp={(e) => e.stopPropagation()}
               onPointerMove={(e) => e.stopPropagation()}
               disabled={shufflesLeft <= 0}
-              className="fixed z-[60] w-10 h-10 rounded-full border flex items-center justify-center shadow-sm"
+              className="hidden sm:flex fixed z-[60] w-10 h-10 rounded-full border items-center justify-center shadow-sm"
               style={{
                 top: 20,
                 right: 20,
@@ -267,16 +327,8 @@ export default function Game() {
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
               }}
-              animate={
-                isShuffling
-                  ? { scale: [1, 0.85, 1.1, 1], rotate: [0, 360] }
-                  : { scale: 1, rotate: 0 }
-              }
-              transition={
-                isShuffling
-                  ? { duration: 0.5, ease: "easeInOut" }
-                  : { duration: 0.2 }
-              }
+              animate={isShuffling ? { scale: [1, 0.85, 1.1, 1], rotate: [0, 360] } : { scale: 1, rotate: 0 }}
+              transition={isShuffling ? { duration: 0.5, ease: "easeInOut" } : { duration: 0.2 }}
               whileHover={shufflesLeft > 0 ? { scale: 1.08 } : {}}
               whileTap={shufflesLeft > 0 ? { scale: 0.92 } : {}}
               title={shufflesLeft > 0 ? "Shuffle board" : "No shuffles left"}
@@ -288,19 +340,7 @@ export default function Game() {
                 <path d="M4.5 17 L4.5 14 L7.5 14" />
               </svg>
               {shufflesLeft > 0 && (
-                <span
-                  className="absolute flex items-center justify-center rounded-full font-bold"
-                  style={{
-                    top: -4,
-                    right: -4,
-                    width: 16,
-                    height: 16,
-                    fontSize: 10,
-                    lineHeight: 1,
-                    color: "#fff",
-                    background: "var(--text-primary)",
-                  }}
-                >
+                <span className="absolute flex items-center justify-center rounded-full font-bold" style={{ top: -4, right: -4, width: 16, height: 16, fontSize: 10, lineHeight: 1, color: "#fff", background: "var(--text-primary)" }}>
                   {shufflesLeft}
                 </span>
               )}
