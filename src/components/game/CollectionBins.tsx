@@ -47,6 +47,7 @@ interface SinglePotProps {
   showPlaceholder: boolean;
   lidDir: LidDirection;
   flexHeight?: boolean;
+  placeholderMarginTop?: number;
 }
 
 function SinglePot({
@@ -58,6 +59,7 @@ function SinglePot({
   showPlaceholder,
   lidDir,
   flexHeight = false,
+  placeholderMarginTop = -3,
 }: SinglePotProps) {
   const activeBins = letters.filter((l) => (collected[l] || 0) > 0);
 
@@ -166,7 +168,7 @@ function SinglePot({
             showPlaceholder ? (
               <div
                 className="absolute inset-0 flex items-center justify-center text-[11px] text-[var(--text-tertiary)]"
-                style={{ marginTop: -3 }}
+                style={{ marginTop: placeholderMarginTop }}
               >
                 Match letters to collect
               </div>
@@ -211,6 +213,7 @@ export default function CollectionBins({
           showPlaceholder={true}
           lidDir="center"
           flexHeight
+          placeholderMarginTop={-13}
         />
       </div>
     );
